@@ -1,5 +1,5 @@
-const int buttonPin = 15;  
-const int ledPin = 2;    
+const int buttonPin = 10;  
+const int ledPin = 3;    
 
 
 int ledState = HIGH;      
