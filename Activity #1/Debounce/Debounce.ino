@@ -1,17 +1,15 @@
-// Pin Definitions
-const int buttonPin = 32;    // Push button pin
-const int ledPin = 2;        // LED pin (Onboard LED on many ESP32s)
+const int buttonPin = 32;   
+const int ledPin = 2;     
 
-// Debounce variables
 unsigned long lastDebounceTime = 0;
-unsigned long debounceDelay = 50;  // milliseconds
+unsigned long debounceDelay = 50;
 
-int lastButtonState = HIGH;    // Assume button is not pressed initially
+int lastButtonState = HIGH;   
 int buttonState;
 int ledState = LOW;
 
 void setup() {
-  pinMode(buttonPin, INPUT_PULLUP); // Use internal pull-up
+  pinMode(buttonPin, INPUT_PULLUP);
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, ledState);
 
@@ -22,16 +20,13 @@ void loop() {
   int reading = digitalRead(buttonPin);
 
   if (reading != lastButtonState) {
-    // reset debounce timer
     lastDebounceTime = millis();
   }
 
   if ((millis() - lastDebounceTime) > debounceDelay) {
-    // if the button state has stabilized
     if (reading != buttonState) {
       buttonState = reading;
 
-      // only toggle the LED if the new state is LOW (button press)
       if (buttonState == LOW) {
         ledState = !ledState;
         digitalWrite(ledPin, ledState);
