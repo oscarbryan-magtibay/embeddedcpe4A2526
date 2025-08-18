@@ -1,7 +1,7 @@
 const int led = 2;        
 const int button = 4;      
 
-int ledState = HIGH;      
+int ledState = HIGH;      /
 int buttonState;          
 int lastButtonState = LOW;
 
