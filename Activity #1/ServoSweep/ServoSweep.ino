@@ -3,7 +3,6 @@ const int potPin = 34;
 const int servoPin = 2; 
 
 Servo myServo; 
-
 void setup() {
   
   myServo.attach(servoPin);
