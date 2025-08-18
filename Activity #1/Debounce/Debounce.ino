@@ -1,7 +1,7 @@
 const int buttonPin = 0;  // the number of the pushbutton pin (GPIO 0)
 const int ledPin = 2;     // the number of the LED pin (GPIO 2)
 
-// Variables will change:
+// a
 int ledState = HIGH;        // the current state of the LED pin
 int buttonState;            // the current reading from the button pin
 int lastButtonState = LOW;  // the previous reading from the button pin
