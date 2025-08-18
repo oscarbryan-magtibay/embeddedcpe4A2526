@@ -1,21 +1,31 @@
 #include <ESP32Servo.h> 
+const int potPin = 34;  
+const int servoPin = 2; 
 
-Servo myServo;  
-
-const int servoPin = 13;
+Servo myServo; 
 
 void setup() {
-  myServo.attach(servoPin);  
+  
+  myServo.attach(servoPin);
+  
+  
+  Serial.begin(115200);
 }
 
 void loop() {
-  for (int angle = 0; angle <= 180; angle++) {
-    myServo.write(angle);  
-    delay(15);             
-  }
+  int potValue = analogRead(potPin);
 
-  for (int angle = 180; angle >= 0; angle--) {
-    myServo.write(angle);
-    delay(15);
-  }
+  
+  int servoAngle = map(potValue, 0, 4095, 0, 180);
+
+  
+  myServo.write(servoAngle);
+  
+ 
+  Serial.print("Potentiometer Value: ");
+  Serial.print(potValue);
+  Serial.print(" | Servo Angle: ");
+  Serial.println(servoAngle);
+
+  delay(15); 
 }
