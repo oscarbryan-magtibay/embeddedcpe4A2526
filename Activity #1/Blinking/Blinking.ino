@@ -1,4 +1,4 @@
-void setup() {
+void setup() { // BACROYA_JOSEH_W - BLINKING
   pinMode(2, OUTPUT);
 }
 
