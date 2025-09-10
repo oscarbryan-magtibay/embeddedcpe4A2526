@@ -23,7 +23,7 @@ void loop() {
       Serial.print(angle);
       Serial.println("°");
     } else {
-      Serial.println("Error: Please enter a value between 0 and 180.");
+      Serial.println("Error: Only values 0-180 are valid.");
     }
   }
 }
