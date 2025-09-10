@@ -1,7 +1,6 @@
-const int ledPin = 2;      // LED pin
-const int potPin = 34;     // Potentiometer pin
-int potValue = 0;          // Variable to store potentiometer value
-int dutyCycle = 0;        
+const int ledPin = 2;     
+const int potPin = 34;     
+int potValue = 0;          
 
 void setup() {
   pinMode(ledPin, OUTPUT);
@@ -9,27 +8,14 @@ void setup() {
 }
 
 void loop() {
+  potValue = analogRead(potPin);             
+  int onTime = map(potValue, 0, 4095, 0, 1000); 
+  int offTime = 1000 - onTime;                
 
-  potValue = analogRead(potPin);
-  dutyCycle = map(potValue, 0, 4095, 0, 100);
-
-  int period = 1000;
-  int onTime = (dutyCycle * period) / 100;
-  int offTime = period - onTime;
-
-  if (onTime > 0) {
-    digitalWrite(ledPin, HIGH);
-    delayMicroseconds(onTime);
-  }
-  if (offTime > 0) {
-    digitalWrite(ledPin, LOW);
-    delayMicroseconds(offTime);
-  }
-
-
+  digitalWrite(ledPin, HIGH);               
+  delayMicroseconds(onTime);                 
+  digitalWrite(ledPin, LOW);               
+  delayMicroseconds(offTime);                
   Serial.print("Potentiometer Value: ");
-  Serial.print(potValue);
-  Serial.print(" | Duty Cycle: ");
-  Serial.print(dutyCycle);
-  Serial.println("%");
+  Serial.println(potValue);
 }
