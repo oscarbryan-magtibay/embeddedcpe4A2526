@@ -8,7 +8,7 @@ void setup() {
   SerialBT.begin("ESP32_Master", true);
   Serial.println("Master initialized, connecting...");
   if (SerialBT.connect(receiverAddress)) {
-    Serial.println("Connected to Receiver ESP32!");
+    Serial.println("Connected to Slave ESP32!");
   } else {
     Serial.println("Failed to connect. Retrying...");
   }

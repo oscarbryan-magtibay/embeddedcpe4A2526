@@ -6,7 +6,7 @@ int servoPin = 25;
 
 void setup() {
   Serial.begin(115200);
-  SerialBT.begin("ESP32_Receiver");
+  SerialBT.begin("ESP32_Slave");
   myServo.attach(servoPin);
   myServo.write(90);
   Serial.println("Receiver ready, waiting for data...");
