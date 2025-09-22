@@ -11,3 +11,7 @@ async def receive_data(request: Request):
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+#to run this app use this command: 
+#uvicorn main:app --host 0.0.0.0 --port 8000
+
