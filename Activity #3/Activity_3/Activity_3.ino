@@ -2,18 +2,18 @@
 #include <ESP32Servo.h>
 
 BluetoothSerial SerialBT;
-Servo myServo;
+Servo bluetoothServo;
 
 const int SERVO_PIN = 2;
-const float SERVO_SPEED = 360.0;
+const float SERVO_SPEED = 180.0;
 
 void setup() {
   Serial.begin(115200);
-  SerialBT.begin("ESP32_Servo_Control");
-  Serial.println("Bluetooth Device is Ready to Pair");
+  SerialBT.begin("ESP32_Servo");
+  Serial.println("Bluetooth device is ready to pair");
 
-  myServo.attach(SERVO_PIN, 1000, 2000);
-  myServo.write(90);
+  bluetoothServo.attach(SERVO_PIN, 1000, 2000);
+  bluetoothServo.write(90);
 }
 
 void rotateDegrees(int angle) {
@@ -22,9 +22,9 @@ void rotateDegrees(int angle) {
 
   int duration = (degrees / SERVO_SPEED) * 1000;
 
-  myServo.write(direction);
+  bluetoothServo.write(direction);
   delay(duration);
-  myServo.write(90);
+  bluetoothServo.write(90);
 }
 
 void loop() {
@@ -33,11 +33,14 @@ void loop() {
     input.trim();
 
     int angle = input.toInt();
-    if (angle >= -360 && angle <= 360) {
+
+    if (angle >= -180 && angle <= 180) {
       rotateDegrees(angle);
       Serial.printf("Rotated %d degrees\n", angle);
       SerialBT.printf("Rotated %d degrees\n", angle);
-    } else {
+    }
+    
+    else {
       Serial.println("Invalid input! Enter 0 to 180.");
       SerialBT.println("Invalid input! Enter 0 to 180.");
     }
