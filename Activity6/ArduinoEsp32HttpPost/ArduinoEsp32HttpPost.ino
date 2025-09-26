@@ -3,11 +3,11 @@
 #include <DHT.h>
 
 // WiFi credentials
-const char* ssid = "zeroRoom0";
-const char* password = "YagamiLight.1";
+const char* ssid = "TPz";
+const char* password = "Confirm32138216";
 
 // Server details
-const char* serverURL = "http://192.168.0.140:8000/esp32/post-data";
+const char* serverURL = "http://192.168.254.121:8000/esp32/post-data";
 
 // DHT11 sensor setup
 #define DHTPIN 4          // Digital pin connected to DHT11
