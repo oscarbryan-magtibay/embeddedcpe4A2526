@@ -1,16 +1,17 @@
-#include <ESP32Servo.h> 
-const int potPin = 34;
-const int servoPin = 2;
+#include <ESP32Servo.h>
+
+const int POT_PIN = 34;
+const int SERVO_PIN = 2;
 
 Servo myServo;
 
 void setup() {
-  myServo.attach(servoPin);
+  myServo.attach(SERVO_PIN);
   Serial.begin(115200);
 }
 
 void loop() {
-  int potValue = analogRead(potPin);
+  int potValue = analogRead(POT_PIN);
   int servoAngle = map(potValue, 0, 4095, 0, 100);
 
   myServo.write(servoAngle);

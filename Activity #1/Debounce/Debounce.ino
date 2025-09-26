@@ -1,5 +1,5 @@
-const int led = 2;
-const int button = 4;
+const int LED_PIN = 2;
+const int BUTTON_PIN = 4;
 
 int ledState = HIGH;
 int buttonState;
@@ -8,22 +8,21 @@ int lastButtonState = LOW;
 unsigned long lastDebounceTime = 0; 
 unsigned long debounceDelay = 50;
 
-
 void setup() {
-  pinMode(led, OUTPUT);
-  pinMode(button, INPUT_PULLUP);
-  digitalWrite(led, ledState);
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  
+  digitalWrite(LED_PIN, ledState);
 }
 
 void loop() {
-  int reading = digitalRead(button);
+  int reading = digitalRead(BUTTON_PIN);
 
   if (reading != lastButtonState) {
     lastDebounceTime = millis();
   }
 
   if ((millis() - lastDebounceTime) > debounceDelay) {
-
     if (reading != buttonState) {
       buttonState = reading;
 
@@ -32,6 +31,7 @@ void loop() {
       }
     }
   }
-  digitalWrite(led, ledState);
+
+  digitalWrite(LED_PIN, ledState);
   lastButtonState = reading;
 }
