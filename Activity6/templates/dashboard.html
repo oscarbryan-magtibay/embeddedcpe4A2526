@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 DHT11 Sensor Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌡️ ESP32 DHT11 Sensor Dashboard</h1>
+            <div class="status">
+                <span id="connectionStatus">🔴 Disconnected</span>
+                <span id="lastUpdate">Last update: Never</span>
+            </div>
+        </header>
+
+        <div class="current-readings">
+            <h2>Current Readings</h2>
+            <div class="sensor-cards">
+                <div class="card temperature">
+                    <h3>Temperature</h3>
+                    <div class="value" id="currentTemp">-- °C</div>
+                    <div class="trend" id="tempTrend"></div>
+                </div>
+                <div class="card humidity">
+                    <h3>Humidity</h3>
+                    <div class="value" id="currentHumidity">-- %</div>
+                    <div class="trend" id="humidityTrend"></div>
+                </div>
+                <div class="card heat-index">
+                    <h3>Heat Index</h3>
+                    <div class="value" id="currentHeatIndex">-- °C</div>
+                    <div class="trend" id="heatIndexTrend"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts">
+            <div class="chart-container">
+                <canvas id="temperatureChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="humidityChart"></canvas>
+            </div>
+        </div>
+
+        <div class="recent-readings">
+            <h2>Recent Readings</h2>
+            <table id="readingsTable">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Temperature (°C)</th>
+                        <th>Humidity (%)</th>
+                        <th>Heat Index (°C)</th>
+                    </tr>
+                </thead>
+                <tbody id="readingsBody">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats">
+            <h2>Statistics (Last 100 readings)</h2>
+            <div class="stats-grid" id="statsGrid">
+                <!-- Stats will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let previousReadings = { temperature: null, humidity: null, heat_index: null };
+        let temperatureChart, humidityChart;
+
+        // Update data every 5 seconds
+        setInterval(updateDashboard, 5000);
+        updateDashboard();
+
+        async function updateDashboard() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                updateCurrentReadings(data.current);
+                updateRecentReadings();
+                updateStats(data.averages);
+                updateConnectionStatus(true);
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                updateConnectionStatus(false);
+            }
+        }
+
+        function updateCurrentReadings(current) {
+            if (!current) return;
+
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = 
+                `Last update: ${now.toLocaleTimeString()}`;
+
+            // Update temperature
+            updateReading('currentTemp', current.temperature, '°C', 'tempTrend', 'temperature');
+            
+            // Update humidity
+            updateReading('currentHumidity', current.humidity, '%', 'humidityTrend', 'humidity');
+            
+            // Update heat index
+            updateReading('currentHeatIndex', current.heat_index, '°C', 'heatIndexTrend', 'heat_index');
+        }
+
+        function updateReading(elementId, value, unit, trendId, type) {
+            if (value !== undefined) {
+                const element = document.getElementById(elementId);
+                element.textContent = `${value.toFixed(1)} ${unit}`;
+                
+                // Show trend arrow
+                const trendElement = document.getElementById(trendId);
+                if (previousReadings[type] !== null) {
+                    const diff = value - previousReadings[type];
+                    if (diff > 0) {
+                        trendElement.innerHTML = '↗️';
+                        trendElement.style.color = '#e74c3c';
+                    } else if (diff < 0) {
+                        trendElement.innerHTML = '↘️';
+                        trendElement.style.color = '#3498db';
+                    } else {
+                        trendElement.innerHTML = '→';
+                        trendElement.style.color = '#95a5a6';
+                    }
+                }
+                
+                previousReadings[type] = value;
+            }
+        }
+
+        async function updateRecentReadings() {
+            try {
+                const response = await fetch('/api/sensor-readings?limit=10');
+                const data = await response.json();
+                
+                const tbody = document.getElementById('readingsBody');
+                tbody.innerHTML = data.readings.map(reading => `
+                    <tr>
+                        <td>${new Date(reading.timestamp).toLocaleString()}</td>
+                        <td>${reading.temperature?.toFixed(1) || '--'}</td>
+                        <td>${reading.humidity?.toFixed(1) || '--'}</td>
+                        <td>${reading.heat_index?.toFixed(1) || '--'}</td>
+                    </tr>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error fetching recent readings:', error);
+            }
+        }
+
+        function updateStats(stats) {
+            const statsGrid = document.getElementById('statsGrid');
+            if (stats && Object.keys(stats).length > 0) {
+                statsGrid.innerHTML = `
+                    <div class="stat-item">
+                        <h4>Avg Temperature</h4>
+                        <div class="stat-value">${stats.avg_temperature?.toFixed(1) || '--'} °C</div>
+                    </div>
+                    <div class="stat-item">
+                        <h4>Avg Humidity</h4>
+                        <div class="stat-value">${stats.avg_humidity?.toFixed(1) || '--'} %</div>
+                    </div>
+                    <div class="stat-item">
+                        <h4>Temp Range</h4>
+                        <div class="stat-value">${stats.min_temperature?.toFixed(1) || '--'} - ${stats.max_temperature?.toFixed(1) || '--'} °C</div>
+                    </div>
+                    <div class="stat-item">
+                        <h4>Humidity Range</h4>
+                        <div class="stat-value">${stats.min_humidity?.toFixed(1) || '--'} - ${stats.max_humidity?.toFixed(1) || '--'} %</div>
+                    </div>
+                `;
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (connected) {
+                statusElement.innerHTML = '🟢 Connected';
+                statusElement.style.color = '#27ae60';
+            } else {
+                statusElement.innerHTML = '🔴 Disconnected';
+                statusElement.style.color = '#e74c3c';
+            }
+        }
+    </script>
+</body>
+</html>
