@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 DHT11 Sensor Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #00f5ff;
+            --secondary: #7b2cbf;
+            --accent: #ff2a6d;
+            --dark: #0c0e27;
+            --darker: #05071a;
+            --card-bg: rgba(16, 18, 45, 0.7);
+            --text: #e2f3f5;
+            --text-secondary: #a0aec0;
+            --success: #00ff9d;
+            --warning: #ffcc00;
+            --danger: #ff2a6d;
+            --glow: 0 0 15px rgba(0, 245, 255, 0.7);
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            padding: 20px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(123, 44, 191, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 245, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 42, 109, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .grid-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 245, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 245, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(10, 12, 35, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), var(--glow);
+            overflow: hidden;
+            border: 1px solid rgba(0, 245, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        header {
+            background: var(--card-bg);
+            padding: 25px 30px;
+            border-bottom: 1px solid rgba(0, 245, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.1), transparent);
+            transition: var(--transition);
+        }
+
+        header:hover::before {
+            left: 100%;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .status {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 245, 255, 0.2);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--danger);
+            box-shadow: 0 0 10px var(--danger);
+        }
+
+        .status-indicator.connected {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+            padding: 0 30px;
+        }
+
+        @media (max-width: 1100px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .current-readings {
+            grid-column: 1 / -1;
+            padding-top: 30px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            font-size: 1.5rem;
+        }
+
+        .sensor-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(0, 245, 255, 0.1);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+        }
+
+        .card.temperature::before {
+            background: linear-gradient(90deg, var(--danger), #ff7b00);
+        }
+
+        .card.humidity::before {
+            background: linear-gradient(90deg, var(--primary), #0099ff);
+        }
+
+        .card.heat-index::before {
+            background: linear-gradient(90deg, var(--warning), #ff9900);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), var(--glow);
+            border-color: rgba(0, 245, 255, 0.3);
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card .value {
+            font-size: 3.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--text), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .card .trend {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .trend.up {
+            color: var(--danger);
+        }
+
+        .trend.down {
+            color: var(--primary);
+        }
+
+        .trend.stable {
+            color: var(--text-secondary);
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(0, 245, 255, 0.1);
+            transition: var(--transition);
+            height: 300px;
+        }
+
+        .chart-container:hover {
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), var(--glow);
+            border-color: rgba(0, 245, 255, 0.3);
+        }
+
+        .data-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 0 30px 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(0, 245, 255, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            text-align: left;
+            color: var(--primary);
+            font-weight: 600;
+            border-bottom: 2px solid rgba(0, 245, 255, 0.2);
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: var(--transition);
+        }
+
+        tr:hover td {
+            background: rgba(0, 245, 255, 0.05);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(0, 245, 255, 0.1);
+            transition: var(--transition);
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 245, 255, 0.2);
+        }
+
+        .stat-item h4 {
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .status {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .sensor-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .card .value {
+                font-size: 2.5rem;
+            }
+            
+            .dashboard-grid, .data-section {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .dashboard-grid {
+                gap: 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .data-section {
+                margin-left: 15px;
+                margin-right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-lines"></div>
+    
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1><i class="fas fa-microchip"></i> ESP32 DHT11 SENSOR DASHBOARD</h1>
+                <div class="status">
+                    <div class="status-item">
+                        <div class="status-indicator" id="connectionIndicator"></div>
+                        <span id="connectionStatus">DISCONNECTED</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="far fa-clock"></i>
+                        <span id="lastUpdate">Last update: Never</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="current-readings">
+                <h2 class="section-title"><i class="fas fa-satellite-dish"></i> CURRENT READINGS</h2>
+                <div class="sensor-cards">
+                    <div class="card temperature">
+                        <h3><i class="fas fa-thermometer-half"></i> TEMPERATURE</h3>
+                        <div class="value" id="currentTemp">-- °C</div>
+                        <div class="trend" id="tempTrend"></div>
+                    </div>
+                    <div class="card humidity">
+                        <h3><i class="fas fa-tint"></i> HUMIDITY</h3>
+                        <div class="value" id="currentHumidity">-- %</div>
+                        <div class="trend" id="humidityTrend"></div>
+                    </div>
+                    <div class="card heat-index">
+                        <h3><i class="fas fa-fire"></i> HEAT INDEX</h3>
+                        <div class="value" id="currentHeatIndex">-- °C</div>
+                        <div class="trend" id="heatIndexTrend"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts">
+                <h2 class="section-title"><i class="fas fa-chart-line"></i> TEMPERATURE TREND</h2>
+                <div class="chart-container">
+                    <canvas id="temperatureChart"></canvas>
+                </div>
+            </div>
+
+            <div class="charts">
+                <h2 class="section-title"><i class="fas fa-chart-area"></i> HUMIDITY TREND</h2>
+                <div class="chart-container">
+                    <canvas id="humidityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <h2 class="section-title"><i class="fas fa-history"></i> RECENT READINGS</h2>
+            <table id="readingsTable">
+                <thead>
+                    <tr>
+                        <th>TIME</th>
+                        <th>TEMPERATURE (°C)</th>
+                        <th>HUMIDITY (%)</th>
+                        <th>HEAT INDEX (°C)</th>
+                    </tr>
+                </thead>
+                <tbody id="readingsBody">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="data-section">
+            <h2 class="section-title"><i class="fas fa-chart-bar"></i> STATISTICS (LAST 100 READINGS)</h2>
+            <div class="stats-grid" id="statsGrid">
+                <!-- Stats will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let previousReadings = { temperature: null, humidity: null, heat_index: null };
+        let temperatureChart, humidityChart;
+
+        // Initialize charts
+        function initializeCharts() {
+            const tempCtx = document.getElementById('temperatureChart').getContext('2d');
+            temperatureChart = new Chart(tempCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: [],
+                        borderColor: '#ff2a6d',
+                        backgroundColor: 'rgba(255, 42, 109, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#ff2a6d',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e2f3f5',
+                                font: {
+                                    family: "'Orbitron', sans-serif"
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0aec0'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0aec0'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const humidityCtx = document.getElementById('humidityChart').getContext('2d');
+            humidityChart = new Chart(humidityCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Humidity (%)',
+                        data: [],
+                        borderColor: '#00f5ff',
+                        backgroundColor: 'rgba(0, 245, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#00f5ff',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e2f3f5',
+                                font: {
+                                    family: "'Orbitron', sans-serif"
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0aec0'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0aec0'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update data every 5 seconds
+        setInterval(updateDashboard, 5000);
+        
+        // Initialize dashboard on load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            updateDashboard();
+        });
+
+        async function updateDashboard() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                updateCurrentReadings(data.current);
+                updateRecentReadings();
+                updateStats(data.averages);
+                updateConnectionStatus(true);
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                updateConnectionStatus(false);
+            }
+        }
+
+        function updateCurrentReadings(current) {
+            if (!current) return;
+
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = 
+                `Last update: ${now.toLocaleTimeString()}`;
+
+            // Update temperature
+            updateReading('currentTemp', current.temperature, '°C', 'tempTrend', 'temperature');
+            
+            // Update humidity
+            updateReading('currentHumidity', current.humidity, '%', 'humidityTrend', 'humidity');
+            
+            // Update heat index
+            updateReading('currentHeatIndex', current.heat_index, '°C', 'heatIndexTrend', 'heat_index');
+        }
+
+        function updateReading(elementId, value, unit, trendId, type) {
+            if (value !== undefined) {
+                const element = document.getElementById(elementId);
+                element.textContent = `${value.toFixed(1)} ${unit}`;
+                
+                // Show trend arrow
+                const trendElement = document.getElementById(trendId);
+                if (previousReadings[type] !== null) {
+                    const diff = value - previousReadings[type];
+                    if (diff > 0) {
+                        trendElement.innerHTML = '<i class="fas fa-arrow-up"></i> INCREASING';
+                        trendElement.className = 'trend up';
+                    } else if (diff < 0) {
+                        trendElement.innerHTML = '<i class="fas fa-arrow-down"></i> DECREASING';
+                        trendElement.className = 'trend down';
+                    } else {
+                        trendElement.innerHTML = '<i class="fas fa-minus"></i> STABLE';
+                        trendElement.className = 'trend stable';
+                    }
+                }
+                
+                previousReadings[type] = value;
+            }
+        }
+
+        async function updateRecentReadings() {
+            try {
+                const response = await fetch('/api/sensor-readings?limit=10');
+                const data = await response.json();
+                
+                const tbody = document.getElementById('readingsBody');
+                tbody.innerHTML = data.readings.map(reading => `
+                    <tr>
+                        <td>${new Date(reading.timestamp).toLocaleString()}</td>
+                        <td>${reading.temperature?.toFixed(1) || '--'}</td>
+                        <td>${reading.humidity?.toFixed(1) || '--'}</td>
+                        <td>${reading.heat_index?.toFixed(1) || '--'}</td>
+                    </tr>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error fetching recent readings:', error);
+            }
+        }
+
+        function updateStats(stats) {
+            const statsGrid = document.getElementById('statsGrid');
+            if (stats && Object.keys(stats).length > 0) {
+                statsGrid.innerHTML = `
+                    <div class="stat-item">
+                        <h4>AVG TEMPERATURE</h4>
+                        <div class="stat-value">${stats.avg_temperature?.toFixed(1) || '--'} °C</div>
+                    </div>
+                    <div class="stat-item">
+                        <h4>AVG HUMIDITY</h4>
+                        <div class="stat-value">${stats.avg_humidity?.toFixed(1) || '--'} %</div>
+                    </div>
+                    <div class="stat-item">
+                        <h4>TEMP RANGE</h4>
+                        <div class="stat-value">${stats.min_temperature?.toFixed(1) || '--'} - ${stats.max_temperature?.toFixed(1) || '--'} °C</div>
+                    </div>
+                    <div class="stat-item">
+                        <h4>HUMIDITY RANGE</h4>
+                        <div class="stat-value">${stats.min_humidity?.toFixed(1) || '--'} - ${stats.max_humidity?.toFixed(1) || '--'} %</div>
+                    </div>
+                `;
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            const indicatorElement = document.getElementById('connectionIndicator');
+            
+            if (connected) {
+                statusElement.textContent = 'CONNECTED';
+                indicatorElement.className = 'status-indicator connected';
+            } else {
+                statusElement.textContent = 'DISCONNECTED';
+                indicatorElement.className = 'status-indicator';
+            }
+        }
+    </script>
+</body>
+</html>
