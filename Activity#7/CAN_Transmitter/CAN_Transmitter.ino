@@ -14,7 +14,6 @@ void setup() {
   Serial.begin(115200);
   dht.begin();
 
-  // Initialize CAN
   while (CAN.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) != CAN_OK) {
     Serial.println("CAN init failed, retrying...");
     delay(500);
@@ -33,10 +32,9 @@ void loop() {
   }
 
   byte data[8];
-  memcpy(data, &t, 4);   // 4 bytes for temperature
-  memcpy(data + 4, &h, 4); // 4 bytes for humidity
+  memcpy(data, &t, 4);  
+  memcpy(data + 4, &h, 4); 
 
-  // Send data over CAN
   CAN.sendMsgBuf(0x100, 0, 8, data);
 
   Serial.printf("Sent → Temp: %.2f°C  Humidity: %.2f%%\n", t, h);
