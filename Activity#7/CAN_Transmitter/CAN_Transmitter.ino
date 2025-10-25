@@ -2,10 +2,10 @@
 #include <mcp_can.h>
 #include "DHT.h"
 
-#define DHTPIN 4
+#define DHTPIN 17
 #define DHTTYPE DHT11
 #define CAN_CS 5
-#define CAN_INT 2
+#define CAN_INT 4
 
 DHT dht(DHTPIN, DHTTYPE);
 MCP_CAN CAN(CAN_CS);

@@ -21,7 +21,7 @@ void setup() {
 
   Wire.begin(21, 22);
 
-  if (!oled.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+  if (!oled.begin(SSD1306_SWITCHCAPVCC, 0x3)) {
     Serial.println(F("SSD1306 init failed"));
     for (;;);
   }

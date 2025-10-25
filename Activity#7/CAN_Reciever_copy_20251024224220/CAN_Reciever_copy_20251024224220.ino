@@ -1,7 +1,8 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <mcp_can.h>
-#include <LiquidCrystal_I2C.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 #define CAN_CS 5
 #define CAN_INT 4
@@ -9,88 +10,68 @@ MCP_CAN CAN0(CAN_CS);
 
 #define SCK_PIN 18
 #define MISO_PIN 19
-#define MOSI_PIN 17  
+#define MOSI_PIN 17
 
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+#define OLED_ADDR 0x3C
 
-#define LED_GREEN 25
-#define LED_RED 26
-#define LED_BLUE 27
-
-#define CAN_ID_DATA 0x036
-#define CAN_ID_ACK  0x037
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void setup() {
   Serial.begin(115200);
   SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CAN_CS);
 
-  pinMode(LED_GREEN, OUTPUT);
-  pinMode(LED_RED, OUTPUT);
-  pinMode(LED_BLUE, OUTPUT);
-  digitalWrite(LED_GREEN, LOW);
-  digitalWrite(LED_RED, LOW);
-  digitalWrite(LED_BLUE, LOW);
-
-  lcd.init();
-  lcd.backlight();
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("CAN Monitor Ready");
-
+  if (!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
+    Serial.println("OLED init failed!");
+    while (1);
+  }
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 10);
+  display.println("CAN Receiver Ready!");
+  display.display();
   delay(1000);
 
-  Serial.println("Initializing CAN...");
-  while (CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) != CAN_OK) {  
-
+  while (CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) != CAN_OK) {
     Serial.println("CAN init failed, retrying...");
     delay(500);
   }
-
   CAN0.setMode(MCP_NORMAL);
   Serial.println("CAN init OK!");
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setCursor(0, 10);
+  display.println("CAN init OK!");
+  display.display();
+  delay(1000);
 }
 
 void loop() {
-  if (!digitalRead(CAN_INT)) {
-    long unsigned int rxId;
-    unsigned char len = 0;
-    unsigned char rxBuf[8];
+  long unsigned int rxId;
+  unsigned char len = 0;
+  unsigned char rxBuf[8];
 
+  if (CAN0.checkReceive() == CAN_MSGAVAIL) {
     CAN0.readMsgBuf(&rxId, &len, rxBuf);
 
-    if (rxId == CAN_ID_DATA && len == 4) {
-      int tempInt = (rxBuf[0] << 8) | rxBuf[1];
-      int humInt  = (rxBuf[2] << 8) | rxBuf[3];
-
-      float temp = tempInt / 100.0;
-      float hum  = humInt  / 100.0;
+    if (rxId == 0x100 && len == 8) {
+      float temp, hum;
+      memcpy(&temp, rxBuf, 4);
+      memcpy(&hum, rxBuf + 4, 4);
 
       Serial.printf("Received → Temp: %.2f°C  Hum: %.2f%%\n", temp, hum);
 
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.printf("Temp: %.2f C", temp);
-      lcd.setCursor(0, 1);
-      lcd.printf("Hum:  %.2f %%", hum);
-
-      digitalWrite(LED_GREEN, LOW);
-      digitalWrite(LED_RED, LOW);
-      digitalWrite(LED_BLUE, LOW);
-
-      if (temp > 30.0) {
-        digitalWrite(LED_RED, HIGH);  
-      } else if (hum > 70.0) {
-        digitalWrite(LED_BLUE, HIGH); 
-      } else {
-        digitalWrite(LED_GREEN, HIGH); 
-      }
-
-      byte dummy[1] = {0};
-      if (CAN0.sendMsgBuf(CAN_ID_ACK, 0, 0, dummy) == CAN_OK) {
-        Serial.println("ACK sent ");
-      } else {
-        Serial.println("Failed to send ACK ");
-      }
+      display.clearDisplay();
+      display.setTextSize(2);
+      display.setTextColor(SSD1306_WHITE);
+      display.setCursor(0, 10);
+      display.printf("T:%.1fC", temp);
+      display.setCursor(0, 40);
+      display.printf("H:%.1f%%", hum);
+      display.display();
     }
   }
 }
