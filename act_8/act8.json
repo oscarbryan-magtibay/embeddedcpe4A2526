@@ -1,0 +1,64 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "temperature-alert",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c29f84d5-8ba4-475a-a5cd-5c815321b080",
+      "name": "Webhook",
+      "webhookId": "dc5560e0-d391-4fa9-aabd-0ed75fdd4fb0"
+    },
+    {
+      "parameters": {
+        "fromEmail": "jonarrel@gmail.com",
+        "toEmail": "2220056@ub.edu.ph",
+        "subject": "ESP32 Alert – Temperature: {{ $json[\"temperature\"] }}°C",
+        "html": "=ESP32 Temperature Alert<br><br>\nDevice: {{ $json[\"body\"][\"deviceId\"] }}<br>\nTemperature: {{ $json[\"body\"][\"temperature\"] }}°C<br>\nHumidity: {{ $json[\"body\"][\"humidity\"] }}%<br>\nTimestamp: {{ $json[\"body\"][\"timestamp\"] }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        192,
+        160
+      ],
+      "id": "05560f15-ee5d-4293-85b6-395d6e44efc8",
+      "name": "Send email1",
+      "webhookId": "11e9cf9c-aabd-4e83-9689-481dcd9f0cae",
+      "alwaysOutputData": false,
+      "retryOnFail": false,
+      "credentials": {
+        "smtp": {
+          "id": "vL5r4uFKmqAGII6c",
+          "name": "SMTP account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7a1513c689602c1ab2fb9105568c0ce080ef26ca0112ba05ff73e53cb2576c71"
+  }
+}
