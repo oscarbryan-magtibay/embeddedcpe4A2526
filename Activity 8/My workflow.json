@@ -1,0 +1,94 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/webhook/temperature",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6dc42580-22d2-4b4b-bd8c-9b8b0ccaad2b",
+      "name": "Webhook",
+      "webhookId": "a1ae84d4-c51f-4556-a163-5c225db8c868"
+    },
+    {
+      "parameters": {
+        "sendTo": "2220194@ub.edu.ph",
+        "subject": "Temperature Reading",
+        "message": "=<h2>🌡️ ESP32 DHT11 Reading</h2>\n<p><b>Temperature:</b> {{ $json.body.temperature }} °C</p>\n<p><b>Humidity:</b> {{ $json.body.humidity }} %</p>\n<p><b>Timestamp:</b> {{$now}}</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "e1bd08ca-e8eb-4205-87e1-1e020f51dee5",
+      "name": "Send a message",
+      "webhookId": "2b53a143-3541-4c44-acec-d7630cef5ef2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "fRCALPWwAVq11Dm2",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "ec03ee20-a0ca-48b0-a35d-7b219dbf8ec5",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b47295d0-d963-4b27-8c03-83e81557f326",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e8977100789ad7193e399fb7fbc824633748668b2f27029b472693c7adc7fce6"
+  },
+  "id": "Dnpib9EPgWXJ2Kbf",
+  "tags": []
+}
