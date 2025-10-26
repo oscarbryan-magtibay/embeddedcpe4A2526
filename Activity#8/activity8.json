@@ -1,0 +1,110 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "temperature-webhook",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ebc9a550-089d-45eb-9694-8824deb73d96",
+      "name": "Webhook",
+      "webhookId": "be657ead-2768-437e-9ceb-00f581617b4a"
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>n8n Weather Dashboard</title>\n  <style>\n    body {\n      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n      background: linear-gradient(135deg, #a2c2e2, #f9f9f9);\n      margin: 0;\n      padding: 0;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n      height: 100vh;\n    }\n\n    .card {\n      background-color: #ffffff;\n      padding: 24px;\n      border-radius: 16px;\n      box-shadow: 0 4px 20px rgba(0,0,0,0.1);\n      text-align: center;\n      width: 320px;\n      transition: 0.3s ease;\n    }\n\n    .card:hover {\n      transform: translateY(-4px);\n    }\n\n    h1 {\n      font-size: 22px;\n      color: #0078d7;\n      margin-bottom: 8px;\n    }\n\n    .temp {\n      font-size: 48px;\n      color: #ff6d5a;\n      font-weight: bold;\n      margin: 0;\n    }\n\n    .humidity {\n      font-size: 20px;\n      color: #606266;\n      margin-top: 8px;\n    }\n\n    .footer {\n      font-size: 12px;\n      color: #909399;\n      margin-top: 16px;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"card\">\n    <h1>Weather Report</h1>\n    <p class=\"temp\">{{ $json.body.temp_c }}°C</p>\n    <p class=\"humidity\">Humidity: {{ $json.body.humidity }}%</p>\n    <div class=\"footer\">Data from n8n workflow</div>\n  </div>\n\n  <script>\n    console.log(\"n8n Weather Dashboard Loaded\");\n  </script>\n</body>\n</html>\n"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "ac4d10c1-de68-4f62-8bdf-beb76574f2b8",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "sendTo": "lorence.ojales@gmail.com",
+        "subject": "Temperature Humidity Update",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "28cc3661-e9d6-471e-95f8-935acc69d2ed",
+      "name": "Send a message",
+      "webhookId": "06f3ef56-5f41-4900-82e6-2d3b38f6cb6b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NlbbmDEui95pk4se",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "headers": {
+          "host": "192.168.1.51:5678",
+          "user-agent": "ESP32HTTPClient",
+          "connection": "keep-alive",
+          "accept-encoding": "identity;q=1,chunked;q=0.1,*;q=0",
+          "content-type": "application/json",
+          "content-length": "70"
+        },
+        "params": {},
+        "query": {},
+        "body": {
+          "device": "esp32-1",
+          "temp_c": 26.4,
+          "humidity": 90.3,
+          "timestamp": "13191"
+        },
+        "webhookUrl": "http://localhost:5678/webhook-test/temperature-webhook",
+        "executionMode": "test"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "71b3236d2688c8ad7fbf036af8f42e9bee064254f4caaabe6862e2cd9093946e"
+  }
+}
