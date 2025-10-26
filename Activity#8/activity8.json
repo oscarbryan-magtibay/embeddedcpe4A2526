@@ -79,30 +79,7 @@
       ]
     }
   },
-  "pinData": {
-    "Webhook": [
-      {
-        "headers": {
-          "host": "192.168.1.51:5678",
-          "user-agent": "ESP32HTTPClient",
-          "connection": "keep-alive",
-          "accept-encoding": "identity;q=1,chunked;q=0.1,*;q=0",
-          "content-type": "application/json",
-          "content-length": "70"
-        },
-        "params": {},
-        "query": {},
-        "body": {
-          "device": "esp32-1",
-          "temp_c": 26.4,
-          "humidity": 90.3,
-          "timestamp": "13191"
-        },
-        "webhookUrl": "http://localhost:5678/webhook-test/temperature-webhook",
-        "executionMode": "test"
-      }
-    ]
-  },
+  "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "71b3236d2688c8ad7fbf036af8f42e9bee064254f4caaabe6862e2cd9093946e"
