@@ -1,0 +1,229 @@
+{
+  "name": "n8n temp and humid",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "esp32-weather",
+        "responseMode": "streaming",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        128,
+        48
+      ],
+      "id": "17f7e97f-e908-494c-906f-c791757b3dae",
+      "name": "Webhook",
+      "webhookId": "dc82c683-6c7b-474d-952a-91bc8f10914b"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        592,
+        48
+      ],
+      "id": "1e653187-1e6f-431f-8e1e-42f3e96d1bea",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        176,
+        400
+      ],
+      "id": "8cc59cbb-0ea8-4826-80a0-0146de202971",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OWVD34Re6pnuokQY",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        432,
+        48
+      ],
+      "id": "7bca20a6-092e-4e47-b0f8-0e6d30582458",
+      "name": "Date & Time1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  temperature: $json[\"body\"][\"temperature\"],\n  humidity: $json[\"body\"][\"humidity\"]\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        48
+      ],
+      "id": "19b976b1-2062-49ec-96ad-e88747ff1385",
+      "name": "Extract"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a helpful weather assistant. Summarize this weather data in a friendly sentence.\n\nTemperature: {{$json[\"temperature\"]}} °C\nHumidity: {{$json[\"humidity\"]}} %\nDate: {{$json[\"currentDate\"]}}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        240
+      ],
+      "id": "33573701-8b8b-4632-95d0-d0ec5e6273a1",
+      "name": "Weather Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- 1. Get AI output ---\nconst aiText = $json[\"text\"] || $json[\"output\"] || \"No summary available\";\n\n// --- 2. Parse date safely ---\nconst inputDateStr = $json[\"currentDate\"] || $json[\"date\"] || new Date();\nconst dateObj = new Date(inputDateStr);\n\n// --- 3. Time and greeting in local time zone (Asia/Manila) ---\nconst timeStr = dateObj.toLocaleTimeString(\"en-US\", {\n  hour: \"2-digit\",\n  minute: \"2-digit\",\n  hour12: false,\n  timeZone: \"Asia/Manila\"\n});\n\nconst hours = parseInt(dateObj.toLocaleString(\"en-US\", {\n  hour: \"2-digit\",\n  hour12: false,\n  timeZone: \"Asia/Manila\"\n}));\n\nlet greeting = \"Good Evening\";\nif (hours < 12) greeting = \"Good Morning\";\nelse if (hours < 18) greeting = \"Good Afternoon\";\n\n// --- 4. Format date in local time zone ---\nconst formattedDate = dateObj.toLocaleDateString(\"en-US\", {\n  year: \"numeric\",\n  month: \"long\",\n  day: \"numeric\",\n  timeZone: \"Asia/Manila\"\n});\n\n// --- 5. Include raw data if exists ---\nconst rawDataStr = $json[\"data\"] || $json[\"input\"] || \"No additional data\";\n\n// --- 6. Build final report ---\nconst finalReport = `${greeting}! Today is ${formattedDate} at ${timeStr}.\nAI Summary: ${aiText}\nRaw Data: ${rawDataStr}`;\n\nreturn [{\n  finalReport\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        240
+      ],
+      "id": "8e461122-7d2a-4816-8faf-18e1003c3549",
+      "name": "Text Cleaner"
+    },
+    {
+      "parameters": {
+        "sendTo": "2420636@ub.edu.ph",
+        "subject": "🌤️ ESP32 Weather Report",
+        "message": "=<h2>🌤️ ESP32 Weather Report</h2>\n<p>{{\n  $json[\"finalReport\"]?.replace(/\\n/g, \"<br>\")\n}}</p>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        592,
+        240
+      ],
+      "id": "2a56f948-85c3-46df-bd39-ef1e0522c797",
+      "name": "Send a message",
+      "webhookId": "a6c24e5c-e474-4f21-8ca7-f038e1d7ed94",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2tOf3GsUESIl6BA1",
+          "name": "SILVA account 4"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Weather Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Weather Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Extract": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Date & Time1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather Agent": {
+      "main": [
+        [
+          {
+            "node": "Text Cleaner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Cleaner": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e5893a87-c06b-47a7-b622-4d596fabb195",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "224275ab47fad502e1f1f5438acdc88a62d30af546671e6d111c78184179bca1"
+  },
+  "id": "j15KGUnErv2i9enx",
+  "tags": []
+}
