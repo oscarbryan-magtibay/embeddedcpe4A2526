@@ -1,0 +1,203 @@
+{
+  "name": "ESP32 WEATHER",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bf2af272-f2a9-43bb-9027-dd5429b3d945",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -940,
+        -140
+      ],
+      "id": "e4ad9700-1531-4a80-9afb-38784ad0102f",
+      "name": "Webhook",
+      "webhookId": "bf2af272-f2a9-43bb-9027-dd5429b3d945"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Extract temperature and humidity\nconst temperature = items.find(i => i.json.temperature)?.json.temperature || 0;\nconst humidity = items.find(i => i.json.humidity)?.json.humidity || 0;\n\n// Extract AI caption (output from previous node / agent)\nconst aiCaption = items.find(i => i.json.output)?.json.output || \"Weather is great!\";\n\n// Build the combined prompt text\nconst promptText = `In a sleek, futuristic environment with soft ambient lighting, a high-tech digital display showcases a professional weather advertisement. The holographic screen presents real-time conditions: ${temperature}°C and ${humidity}% humidity, displayed with elegant 3D icons of a thermometer and humidity gauge. Subtle motion graphics animate the readings with smooth, dynamic transitions. Beneath the data, bold yet refined typography spells out ${aiCaption} in a luminous modern sans-serif font. The background features a minimalist, glass like futuristic setting glowing softly with gradients of cyan, silver, and white giving the impression of a premium weather technology brand. Holographic effects and light refractions add depth and realism, creating the feel of a next-generation professional weather display poster that exudes clarity, innovation, and sophistication.`;\n\n// Return as a single JSON object\nreturn [{\n  json: {\n    prompt_text: promptText\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        100,
+        -160
+      ],
+      "id": "e18af256-70b4-4506-a50a-45e71c58e6d8",
+      "name": "PROMPT"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Kunin ang raw string o JSON object galing sa input\nconst input = $input.first().json;\n\n// Kung ang data ay galing sa \"chatInput\" field (string), i-parse muna\nlet parsed = {};\nif (typeof input.chatInput === \"string\") {\n  try {\n    parsed = JSON.parse(input.chatInput);\n  } catch (e) {\n    parsed = {};\n  }\n}\n// Kung galing sa body (webhook), gamitin direkta\nelse if (input.body) {\n  parsed = input.body;\n}\n\n// Kunin ang temperature at humidity (may fallback)\nconst temperature = parsed.temperature ?? 0;\nconst humidity = parsed.humidity ?? 0;\n\nreturn {\n  json: {\n    temperature,\n    humidity\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -760,
+        -140
+      ],
+      "id": "194731d8-a323-48a8-9a9a-c9a84a68a75b",
+      "name": "EXTRACT"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -60,
+        -160
+      ],
+      "id": "227a2186-b3d3-4c17-8cf8-b8bb54c21e7d",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=MY TEMPERATURE:{{ $json.temperature }} Degree Celcius\nMY HUMIDTY:{{ $json.humidity }} Percent\nTIME:{{ $json.localTime }}",
+        "options": {
+          "systemMessage": "You are a creative, fun, and concise copywriter AI. \n\nYou will receive the following inputs from the user: \n- temperature (in °C) \n- humidity (in %) \n- time \nGenerate a short, catchy, poster-style caption in English based on the weather conditions and local time. \n\nTone by local hour (derived from the time input):\n- Morning (5–11) → fresh, energetic, uplifting\n- Afternoon (12–16) → bright, lively, cheerful\n- Evening (17–20) → relaxed, cozy, warm\n- Night (21–4) → calm, dreamy, soft\n\nKeep the caption 1–2 sentences max, visually appealing, fun, and easy to read. \nOutput ONLY the caption text. Do NOT include any extra commentary or formatting.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        -440
+      ],
+      "id": "cff5e6d6-df37-4cbc-b1f3-4fe1bfe6f921",
+      "name": "Weather Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "meta-llama-3.1-8b-instruct",
+          "mode": "list",
+          "cachedResultName": "meta-llama-3.1-8b-instruct"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -380,
+        -240
+      ],
+      "id": "9f084e5d-aa05-4cc1-af47-db9794b77cbd",
+      "name": "Brain",
+      "credentials": {
+        "openAiApi": {
+          "id": "uMP8K1mGHMnlyAzg",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    safe_prompt: $json.prompt_text\n      .replace(/\\\\/g, '\\\\\\\\')   // escape backslashes\n      .replace(/\\\"/g, '\\\\\"')    // escape quotes\n      .replace(/\\n/g, ' ')      // remove newlines\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        -160
+      ],
+      "id": "09178603-72ed-47f8-89d5-130adbc488ce",
+      "name": "CLEAN"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "EXTRACT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PROMPT": {
+      "main": [
+        [
+          {
+            "node": "CLEAN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EXTRACT": {
+      "main": [
+        [
+          {
+            "node": "Weather Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "PROMPT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Weather Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CLEAN": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "77f2f52e-58ca-44f3-95e9-2b8349448f58",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9057eb3864f3a9cc8a1b3f7bea1eb4aa1caa98d077230445b69b0cc6b9e4124f"
+  },
+  "id": "YJSjtTKBtp3gA8kg",
+  "tags": []
+}
