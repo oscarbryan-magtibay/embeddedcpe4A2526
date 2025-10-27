@@ -7,11 +7,11 @@ const char* password = "Powppies_1921;
 
 const char* n8nWebhookURL = "http://172.17.11.24:5678/webhook/temperature-alert"; 
 
-#define DHT_PIN 4
+#define DHT_PIN 2
 #define DHT_TYPE DHT11
 DHT dht(DHT_PIN, DHT_TYPE);
 
-String deviceId = "ESP32_001";
+String deviceId = "ESP32_Temperature_Alert";
 
 int sendCount = 0;
 const int maxSendCount = 1;
