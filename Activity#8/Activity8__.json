@@ -1,0 +1,147 @@
+{
+  "name": "Simple Temperature Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "temperature-data",
+        "options": {}
+      },
+      "id": "0bcec028-1cdf-45ca-ba46-11f9704ce32c",
+      "name": "Temperature Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        112
+      ],
+      "webhookId": "temperature-data"
+    },
+    {
+      "parameters": {
+        "fromEmail": "2220478@ub.edu.ph",
+        "toEmail": "2220478@ub.edu.ph",
+        "subject": "High Temperature Alert",
+        "text": "🚨 HIGH TEMPERATURE ALERT!\n\nDevice: {{ $json.deviceId }}\nTemperature: {{ $json.temperature }}°C\nHumidity: {{ $json.humidity }}%\nTimestamp: {{ $json.timestamp }}\n\nThis is an automated alert from your temperature monitoring system.",
+        "options": {}
+      },
+      "id": "3ca39689-619b-4973-b441-541867bac430",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "IvwKMtBZLhmxpitw",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "1wBD_ZL5xKnag13AhbP3aPaWuepua9Ofeh1UX-5nfH0U",
+          "mode": "list",
+          "cachedResultName": "Temperature Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wBD_ZL5xKnag13AhbP3aPaWuepua9Ofeh1UX-5nfH0U/edit?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "id": "8ba19ac4-ae83-46f6-9d00-ba9964b8fbf5",
+      "name": "Save Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        0,
+        208
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tPZ4stYIsAf6fj15",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f05749bf-b036-4464-a342-ba2185f23f2c",
+              "leftValue": "={{ $json.temperature }}",
+              "rightValue": 30,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -336,
+        112
+      ],
+      "id": "0f7da671-5815-4aa3-b976-b573b595c0a4",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Temperature Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "06373ba4-1a97-4e08-b2cc-b506cfd471ad",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3dcc59599aa396927577bdcfd84eb13606e5f04852afd15646caa4dd33472a6d"
+  },
+  "id": "SFrAQb9e5EbeBD9W",
+  "tags": []
