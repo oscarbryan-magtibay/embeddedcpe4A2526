@@ -1,0 +1,180 @@
+{
+  "name": "My workflow 3",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "meta-llama-3.1-8b-instruct",
+          "mode": "list",
+          "cachedResultName": "meta-llama-3.1-8b-instruct"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        780,
+        860
+      ],
+      "id": "e156fe56-7bc6-432a-8ffd-9036216d6046",
+      "name": "Brain",
+      "credentials": {
+        "openAiApi": {
+          "id": "uMP8K1mGHMnlyAzg",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const localNow = new Date().toLocaleString(\"en-US\", { timeZone: \"Asia/Manila\" });\nreturn [{ json: { temperature: $json.temperature, humidity: $json.humidity, localTime: localNow } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        960
+      ],
+      "id": "1cfdd530-4eda-405d-84f1-974869d6d209",
+      "name": "DATE"
+    },
+    {
+      "parameters": {
+        "sendTo": "amadsramos20@gmail.com",
+        "subject": "Heart Rate Analysis (Doctor AI)",
+        "message": "=<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <style>\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n        \n        body {\n            margin: 0;\n            padding: 20px;\n            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            min-height: 100vh;\n        }\n        \n        .email-container {\n            width: 100%;\n            max-width: 800px;\n            margin: 0 auto;\n            background: white;\n            border-radius: 20px;\n            overflow: hidden;\n            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);\n        }\n        \n        /* HEADER */\n        .header {\n            background: linear-gradient(90deg, #d32f2f 0%, #b71c1c 100%);\n            padding: 30px;\n            text-align: center;\n        }\n        \n        .header h1 {\n            color: white;\n            font-size: 32px;\n            font-weight: 700;\n            margin: 0;\n        }\n        \n        /* MAIN CONTENT */\n        .main-content {\n            padding: 40px;\n            text-align: center;\n        }\n        \n        /* VITAL SIGNS */\n        .vital-signs {\n            display: flex;\n            justify-content: center;\n            gap: 40px;\n            margin-bottom: 40px;\n            flex-wrap: wrap;\n        }\n        \n        .vital-card {\n            background: #f5f5f5;\n            border-radius: 15px;\n            padding: 25px;\n            min-width: 180px;\n            box-shadow: 0 5px 15px rgba(0,0,0,0.1);\n        }\n        \n        .vital-icon {\n            font-size: 40px;\n            margin-bottom: 15px;\n            display: block;\n        }\n        \n        .vital-label {\n            color: #666;\n            font-size: 16px;\n            font-weight: 600;\n            margin-bottom: 10px;\n        }\n        \n        .vital-value {\n            font-size: 42px;\n            font-weight: 800;\n            color: #d32f2f;\n        }\n        \n        .time-value {\n            color: #1976d2;\n            font-size: 36px;\n        }\n        \n        /* AI VERDICT - CENTER PIECE */\n        .ai-verdict-container {\n            background: linear-gradient(135deg, #fff3e0 0%, #ffecb3 100%);\n            border-radius: 20px;\n            padding: 50px;\n            margin: 40px 0;\n            border: 3px solid #ff9800;\n            text-align: center;\n        }\n        \n        .verdict-header {\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            gap: 15px;\n            margin-bottom: 30px;\n        }\n        \n        .verdict-icon {\n            font-size: 48px;\n        }\n        \n        .verdict-title {\n            color: #e65100;\n            font-size: 36px;\n            font-weight: 800;\n            margin: 0;\n        }\n        \n        .verdict-text {\n            color: #5d4037;\n            font-size: 24px;\n            line-height: 1.8;\n            margin: 0;\n            padding: 20px;\n            background: rgba(255, 255, 255, 0.9);\n            border-radius: 15px;\n            border-left: 5px solid #ff9800;\n            min-height: 200px;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n        }\n        \n        /* FOOTER */\n        .footer {\n            background: #333;\n            padding: 30px;\n            text-align: center;\n            color: white;\n        }\n        \n        .date-display {\n            font-size: 18px;\n            color: #bbbbbb;\n            margin-bottom: 20px;\n        }\n        \n        .creator {\n            color: #4fc3f7;\n            font-size: 24px;\n            font-weight: 700;\n            margin: 20px 0;\n        }\n        \n        .disclaimer {\n            color: #aaaaaa;\n            font-size: 12px;\n            line-height: 1.5;\n            margin-top: 20px;\n            font-style: italic;\n        }\n        \n        /* RESPONSIVE */\n        @media (max-width: 600px) {\n            .vital-signs {\n                flex-direction: column;\n                align-items: center;\n            }\n            \n            .vital-card {\n                width: 100%;\n                max-width: 300px;\n            }\n            \n            .ai-verdict-container {\n                padding: 30px 20px;\n            }\n            \n            .verdict-title {\n                font-size: 28px;\n            }\n            \n            .verdict-text {\n                font-size: 20px;\n                padding: 15px;\n            }\n        }\n    </style>\n</head>\n<body>\n    <div class=\"email-container\">\n        <!-- HEADER -->\n        <div class=\"header\">\n            <h1>⚕️ AI CARDIAC DIAGNOSTIC REPORT</h1>\n        </div>\n        \n        <!-- MAIN CONTENT -->\n        <div class=\"main-content\">\n            <!-- VITAL SIGNS -->\n            <div class=\"vital-signs\">\n                <div class=\"vital-card\">\n                    <span class=\"vital-icon\">❤️</span>\n                    <div class=\"vital-label\">HEART RATE</div>\n                    <div class=\"vital-value\">{{ $('Webhook2').item.json.body.bpm }} BPM</div>\n                </div>\n                \n                <div class=\"vital-card\">\n                    <span class=\"vital-icon\">🕒</span>\n                    <div class=\"vital-label\">MEASURED AT</div>\n                    <div class=\"vital-value time-value\">{{ $('DATE').item.json.localTime }}</div>\n                </div>\n            </div>\n            \n            <!-- AI VERDICT - CENTER FOCUS -->\n            <div class=\"ai-verdict-container\">\n                <div class=\"verdict-header\">\n                    <span class=\"verdict-icon\">🤖</span>\n                    <h2 class=\"verdict-title\">AI DIAGNOSTIC VERDICT</h2>\n                </div>\n                \n                <div class=\"verdict-text\">\n                    {{ $json.output }}\n                </div>\n            </div>\n        </div>\n        \n        <!-- FOOTER -->\n        <div class=\"footer\">\n            <div class=\"date-display\">{{ $now.format(\"MMMM DD, YYYY\") }}</div>\n            \n            <div class=\"creator\">CREATED BY : AMADEUS RAMOS</div>\n            \n            <div class=\"disclaimer\">\n                ⚕️ This report is AI-generated for informational purposes only. \n                Always consult with a healthcare professional for medical advice.\n            </div>\n        </div>\n    </div>\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1420,
+        880
+      ],
+      "id": "3649e039-f5e4-45bb-a5df-70d26a2906e9",
+      "name": "Gmail",
+      "webhookId": "52d9b447-8170-4c8e-ae3b-0a2f875a4d72",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6vE42xC4wa30XgG7",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bf2af272-f2a9-43bb-9027-dd5429b3d945",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        340,
+        960
+      ],
+      "id": "731d6215-0bac-4575-8959-0334b7465526",
+      "name": "Webhook2",
+      "webhookId": "bf2af272-f2a9-43bb-9027-dd5429b3d945"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1140,
+        880
+      ],
+      "id": "9b06f669-80f7-4034-b7e3-97f7deab7421",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=MY BPM:{{ $('Webhook2').item.json.body.bpm }}\nTIME:{{ $json.localTime }}",
+        "options": {
+          "systemMessage": "You are a professional and compassionate doctor AI. You will receive BPM (beats per minute) as input.\n\nYour task:\n\nAnalyze the BPM value.\n\nProvide a concise doctor-style statement to the patient including:\n\nWhether the BPM is Normal, Low, or High.\n\nA brief note on what it might indicate if abnormal.\n\nSimple advice on what the patient can do (rest, hydrate, monitor, or seek medical attention).\n\nKeep the tone professional, caring, and authoritative, like a real doctor giving guidance.\n\nKeep it 1–3 sentences maximum.\n\nOutput only the patient message, no extra commentary, code, or formatting."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        800,
+        680
+      ],
+      "id": "f10daafd-a819-4855-a1f8-6cc0bae80e8a",
+      "name": "BPM DOCTOR"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "BPM DOCTOR",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DATE": {
+      "main": [
+        [
+          {
+            "node": "BPM DOCTOR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook2": {
+      "main": [
+        [
+          {
+            "node": "DATE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BPM DOCTOR": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3e7a1ba6-e195-48b5-a358-5affc798a16f",
+  "meta": {
+    "instanceId": "9057eb3864f3a9cc8a1b3f7bea1eb4aa1caa98d077230445b69b0cc6b9e4124f"
+  },
+  "id": "z9gkaclFbzQbAslP",
+  "tags": []
+}
