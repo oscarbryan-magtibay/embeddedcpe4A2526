@@ -9,7 +9,7 @@ DHT dht(DHTPIN, DHTTYPE);
 const char* ssid = "WIFI WII";
 const char* password = "noodlldes";
 
-const char* n8n_webhook = "http://172.29.34.21:5678/webhook-test/esp32-weather";
+const char* n8n_webhook = "http://10.224.240.21:5678/webhook-test/esp32-weather";
 
 void setup() {
   Serial.begin(115200);
