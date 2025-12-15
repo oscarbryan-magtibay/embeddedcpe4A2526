@@ -1,0 +1,810 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroSense AI - Crop Stress Monitoring</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00ff9d;
+            --secondary: #00d4ff;
+            --accent: #ff00ff;
+            --dark: #0a0a1a;
+            --darker: #050510;
+            --light: #e0f7fa;
+            --card-bg: rgba(16, 20, 40, 0.8);
+            --glow: 0 0 20px rgba(0, 255, 157, 0.3);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.2);
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+        
+        .logo-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: blink 1.5s infinite;
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: 0.5s;
+        }
+        
+        .card:hover::before {
+            left: 100%;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--glow);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-icon {
+            font-size: 1.5rem;
+        }
+        
+        /* Sensor Cards */
+        .sensor-value {
+            font-size: 3rem;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+            margin: 10px 0;
+        }
+        
+        .sensor-unit {
+            font-size: 1.2rem;
+            color: var(--secondary);
+            margin-left: 5px;
+        }
+        
+        .sensor-progress {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+        
+        .sensor-progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+        
+        /* Stress Level Card */
+        .stress-level {
+            font-size: 4rem;
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            margin: 20px 0;
+            text-transform: uppercase;
+        }
+        
+        .stress-low { color: var(--primary); }
+        .stress-medium { color: #ffcc00; }
+        .stress-high { color: #ff6600; }
+        .stress-critical { color: #ff3366; animation: alert 1s infinite; }
+        
+        .stress-meter {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            position: relative;
+        }
+        
+        .stress-ring {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 10px solid transparent;
+            background: conic-gradient(
+                var(--primary) 0% 25%,
+                #ffcc00 25% 50%,
+                #ff6600 50% 75%,
+                #ff3366 75% 100%
+            );
+            -webkit-mask: radial-gradient(transparent 65%, black 66%);
+            mask: radial-gradient(transparent 65%, black 66%);
+        }
+        
+        .stress-needle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 90px;
+            background: white;
+            transform-origin: bottom center;
+            transition: transform 1s ease;
+        }
+        
+        /* Analysis Card */
+        .analysis-content {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .analysis-content::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .analysis-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .analysis-content::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+        
+        /* Recommendations */
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .recommendation-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+        
+        .recommendation-card:hover {
+            background: rgba(0, 255, 157, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .recommendation-priority {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .priority-high { background: rgba(255, 51, 102, 0.3); color: #ff3366; }
+        .priority-medium { background: rgba(255, 204, 0, 0.3); color: #ffcc00; }
+        .priority-low { background: rgba(0, 255, 157, 0.3); color: var(--primary); }
+        
+        /* History Graph */
+        .graph-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: var(--dark);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--secondary);
+            border: 2px solid var(--secondary);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--glow);
+        }
+        
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        @keyframes alert {
+            0%, 100% { text-shadow: 0 0 10px currentColor; }
+            50% { text-shadow: 0 0 30px currentColor; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stress-meter {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .sensor-value {
+                font-size: 2.5rem;
+            }
+        }
+        
+        .last-update {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+        
+        .ai-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, var(--accent), var(--secondary));
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-seedling"></i>
+                </div>
+                <div class="logo-text">AGROSENSE AI</div>
+            </div>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>LIVE MONITORING</span>
+            </div>
+        </header>
+        
+        <div class="dashboard-grid">
+            <!-- Soil Moisture Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-tint card-icon"></i>
+                        SOIL MOISTURE
+                    </div>
+                    <div class="card-status">
+                        <i class="fas fa-circle" style="color: var(--primary);"></i>
+                    </div>
+                </div>
+                <div class="sensor-value" id="soil-moisture">--%</div>
+                <div class="sensor-progress">
+                    <div class="sensor-progress-fill" id="soil-progress" 
+                         style="width: 0%; background: var(--primary);"></div>
+                </div>
+                <div class="sensor-meta">
+                    Raw: <span id="soil-raw">--</span> | Optimal: 40-70%
+                </div>
+            </div>
+            
+            <!-- Temperature Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-thermometer-half card-icon"></i>
+                        TEMPERATURE
+                    </div>
+                </div>
+                <div class="sensor-value" id="temperature">--°C</div>
+                <div class="sensor-progress">
+                    <div class="sensor-progress-fill" id="temp-progress" 
+                         style="width: 0%; background: var(--secondary);"></div>
+                </div>
+                <div class="sensor-meta">
+                    Optimal: 20-30°C
+                </div>
+            </div>
+            
+            <!-- Humidity Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-cloud card-icon"></i>
+                        HUMIDITY
+                    </div>
+                </div>
+                <div class="sensor-value" id="humidity">--%</div>
+                <div class="sensor-progress">
+                    <div class="sensor-progress-fill" id="humidity-progress" 
+                         style="width: 0%; background: var(--accent);"></div>
+                </div>
+                <div class="sensor-meta">
+                    Optimal: 40-70%
+                </div>
+            </div>
+            
+            <!-- Stress Level Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-heartbeat card-icon"></i>
+                        CROP STRESS LEVEL
+                    </div>
+                </div>
+                <div class="stress-meter">
+                    <div class="stress-ring"></div>
+                    <div class="stress-needle" id="stress-needle"></div>
+                </div>
+                <div class="stress-level" id="stress-level">--</div>
+                <div class="sensor-meta" id="stress-issues">
+                    No issues detected
+                </div>
+            </div>
+            
+            <!-- AI Analysis Card -->
+            <div class="card">
+                <div class="ai-badge">AI POWERED</div>
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-brain card-icon"></i>
+                        AI ANALYSIS
+                    </div>
+                </div>
+                <div class="analysis-content" id="ai-analysis">
+                    <p>Waiting for sensor data and AI analysis...</p>
+                </div>
+            </div>
+            
+            <!-- Recommendations Card -->
+            <div class="card" style="grid-column: span 2;">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-lightbulb card-icon"></i>
+                        RECOMMENDATIONS
+                    </div>
+                </div>
+                <div class="recommendations-grid" id="recommendations">
+                    <div class="recommendation-card">
+                        <span class="recommendation-priority priority-medium">MEDIUM PRIORITY</span>
+                        <p>Connect sensors to start monitoring</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- History Graph -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-chart-line card-icon"></i>
+                    STRESS LEVEL HISTORY
+                </div>
+            </div>
+            <div class="graph-container">
+                <canvas id="historyChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn btn-primary" onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i> REFRESH DATA
+            </button>
+            <button class="btn btn-secondary" onclick="exportData()">
+                <i class="fas fa-download"></i> EXPORT REPORT
+            </button>
+            <button class="btn btn-secondary" onclick="simulateData()">
+                <i class="fas fa-flask"></i> SIMULATE DATA
+            </button>
+        </div>
+        
+        <div class="last-update" id="last-update">
+            Last updated: --
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // DOM Elements
+        const soilMoistureEl = document.getElementById('soil-moisture');
+        const soilRawEl = document.getElementById('soil-raw');
+        const soilProgressEl = document.getElementById('soil-progress');
+        const temperatureEl = document.getElementById('temperature');
+        const tempProgressEl = document.getElementById('temp-progress');
+        const humidityEl = document.getElementById('humidity');
+        const humidityProgressEl = document.getElementById('humidity-progress');
+        const stressLevelEl = document.getElementById('stress-level');
+        const stressNeedleEl = document.getElementById('stress-needle');
+        const stressIssuesEl = document.getElementById('stress-issues');
+        const aiAnalysisEl = document.getElementById('ai-analysis');
+        const recommendationsEl = document.getElementById('recommendations');
+        const lastUpdateEl = document.getElementById('last-update');
+        
+        // Chart
+        let historyChart = null;
+        
+        // Stress level mapping
+        const stressLevels = {
+            'Low': { color: 'stress-low', angle: 45, priority: 'low' },
+            'Medium': { color: 'stress-medium', angle: 135, priority: 'medium' },
+            'High': { color: 'stress-high', angle: 225, priority: 'high' },
+            'Critical': { color: 'stress-critical', angle: 315, priority: 'high' }
+        };
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+            setInterval(refreshData, 10000); // Auto-refresh every 10 seconds
+            initChart();
+        });
+        
+        // Fetch data from backend
+        async function refreshData() {
+            try {
+                const response = await fetch('/api/current');
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Error fetching data:', data.error);
+                    return;
+                }
+                
+                updateUI(data);
+                updateChart(data);
+                updateHistory();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                // Fallback to simulated data
+                simulateData();
+            }
+        }
+        
+        // Update UI with new data
+        function updateUI(data) {
+            // Update sensor values
+            if (data.soil_moisture_percent !== undefined) {
+                soilMoistureEl.textContent = `${data.soil_moisture_percent}%`;
+                soilRawEl.textContent = data.soil_moisture;
+                soilProgressEl.style.width = `${data.soil_moisture_percent}%`;
+                
+                // Update progress bar color based on value
+                if (data.soil_moisture_percent < 30) {
+                    soilProgressEl.style.background = '#ff3366';
+                } else if (data.soil_moisture_percent < 50) {
+                    soilProgressEl.style.background = '#ffcc00';
+                } else {
+                    soilProgressEl.style.background = 'var(--primary)';
+                }
+            }
+            
+            if (data.temperature !== undefined) {
+                temperatureEl.textContent = `${data.temperature.toFixed(1)}°C`;
+                const tempPercent = Math.min((data.temperature / 50) * 100, 100);
+                tempProgressEl.style.width = `${tempPercent}%`;
+                
+                if (data.temperature > 35) {
+                    tempProgressEl.style.background = '#ff3366';
+                } else if (data.temperature > 30) {
+                    tempProgressEl.style.background = '#ffcc00';
+                } else {
+                    tempProgressEl.style.background = 'var(--secondary)';
+                }
+            }
+            
+            if (data.humidity !== undefined) {
+                humidityEl.textContent = `${data.humidity.toFixed(1)}%`;
+                humidityProgressEl.style.width = `${data.humidity}%`;
+                
+                if (data.humidity < 30 || data.humidity > 80) {
+                    humidityProgressEl.style.background = '#ffcc00';
+                } else {
+                    humidityProgressEl.style.background = 'var(--accent)';
+                }
+            }
+            
+            // Update stress level
+            if (data.stress_level) {
+                const stress = stressLevels[data.stress_level];
+                stressLevelEl.textContent = data.stress_level;
+                stressLevelEl.className = `stress-level ${stress.color}`;
+                
+                // Update needle
+                stressNeedleEl.style.transform = `translateX(-50%) rotate(${stress.angle}deg)`;
+                
+                // Update issues
+                if (data.issues && data.issues.length > 0) {
+                    stressIssuesEl.innerHTML = `<strong>Issues:</strong> ${data.issues.join(', ')}`;
+                } else {
+                    stressIssuesEl.textContent = 'No issues detected';
+                }
+            }
+            
+            // Update AI analysis
+            if (data.ai_analysis) {
+                aiAnalysisEl.innerHTML = `<p>${data.ai_analysis.replace(/\n/g, '<br>')}</p>`;
+            }
+            
+            // Update recommendations
+            if (data.recommendations && Array.isArray(data.recommendations)) {
+                recommendationsEl.innerHTML = '';
+                data.recommendations.forEach(rec => {
+                    const priority = rec.includes('URGENT') || rec.includes('Immediate') 
+                        ? 'priority-high' 
+                        : rec.includes('Monitor') 
+                        ? 'priority-medium' 
+                        : 'priority-low';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'recommendation-card';
+                    card.innerHTML = `
+                        <span class="recommendation-priority ${priority}">${priority.replace('priority-', '').toUpperCase()} PRIORITY</span>
+                        <p>${rec}</p>
+                    `;
+                    recommendationsEl.appendChild(card);
+                });
+            }
+            
+            // Update timestamp
+            if (data.timestamp) {
+                const date = new Date(data.timestamp);
+                lastUpdateEl.textContent = `Last updated: ${date.toLocaleTimeString()}`;
+            }
+        }
+        
+        // Initialize chart
+        function initChart() {
+            const ctx = document.getElementById('historyChart').getContext('2d');
+            historyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Stress Level',
+                        data: [],
+                        borderColor: 'var(--primary)',
+                        backgroundColor: 'rgba(0, 255, 157, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Soil Moisture %',
+                        data: [],
+                        borderColor: 'var(--secondary)',
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'var(--light)',
+                                font: {
+                                    family: "'Exo 2', sans-serif"
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'var(--light)'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'var(--light)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update chart with new data
+        function updateChart(data) {
+            if (!historyChart) return;
+            
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            // Add new data point
+            historyChart.data.labels.push(time);
+            historyChart.data.datasets[0].data.push(data.stress_level === 'Low' ? 1 : 
+                                                   data.stress_level === 'Medium' ? 2 : 
+                                                   data.stress_level === 'High' ? 3 : 4);
+            historyChart.data.datasets[1].data.push(data.soil_moisture_percent || 0);
+            
+            // Keep only last 20 points
+            if (historyChart.data.labels.length > 20) {
+                historyChart.data.labels.shift();
+                historyChart.data.datasets.forEach(dataset => dataset.data.shift());
+            }
+            
+            historyChart.update();
+        }
+        
+        // Fetch historical data
+        async function updateHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+                console.log('History data:', data);
+            } catch (error) {
+                console.error('Error fetching history:', error);
+            }
+        }
+        
+        // Simulate data for testing
+        function simulateData() {
+            const simulatedData = {
+                soil_moisture: Math.floor(Math.random() * 4096),
+                soil_moisture_percent: Math.floor(Math.random() * 100),
+                temperature: 25 + Math.random() * 10,
+                humidity: 40 + Math.random() * 40,
+                stress_level: ['Low', 'Medium', 'High', 'Critical'][Math.floor(Math.random() * 4)],
+                issues: ['Low soil moisture', 'High temperature'],
+                ai_analysis: "Simulated AI analysis: Based on current sensor readings, your crops are experiencing moderate stress due to combined temperature and moisture factors. Immediate action recommended.",
+                recommendations: [
+                    "Increase irrigation by 20%",
+                    "Apply organic mulch",
+                    "Monitor temperature every 4 hours",
+                    "Check for pest activity"
+                ],
+                timestamp: new Date().toISOString()
+            };
+            
+            updateUI(simulatedData);
+            updateChart(simulatedData);
+        }
+        
+        // Export data
+        function exportData() {
+            alert('Export feature would generate a PDF report here.');
+            // In production, this would call a backend endpoint to generate a PDF
+        }
+    </script>
+</body>
+</html>
