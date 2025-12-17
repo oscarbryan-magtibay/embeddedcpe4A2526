@@ -1,0 +1,91 @@
+{
+  "name": "My workflow 4",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "Temperature alert",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d7ec838b-fa73-43d6-a035-69119817f841",
+      "name": "Webhook",
+      "webhookId": "c89e254c-14ae-4780-a293-f2eb7deee0f1"
+    },
+    {
+      "parameters": {
+        "fromEmail": "matalajanangelo7@gmail.com",
+        "toEmail": "2220497@ub.edu.ph",
+        "subject": "ESP32 Data Received Successfully!. This was executed by n8n.",
+        "emailFormat": "text",
+        "text": "ESP32 Data Received Successfully!\n\nTemperature: 31.4 °C\nHumidity: 63.0 %\n\n---\nThis email was sent automatically by n8n.\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "8f1688e8-03ca-462d-9efb-117f1f2fb84c",
+      "name": "Send email",
+      "webhookId": "f7cf768e-d0bd-4b0b-bc2c-82529af1e8ac",
+      "credentials": {
+        "smtp": {
+          "id": "KEJdQKLe59vLTfNO",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      },
+      {
+        "json": {
+          "name": "Second item",
+          "code": 2
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "93073fd2-6b48-4c16-817d-81b660920ae3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c1797029b39e7bd495b59b69326f51473f63fde9efa57a245b621ad017729e49"
+  },
+  "id": "1I2K16FEKVFcfYUY",
+  "tags": []
+}
