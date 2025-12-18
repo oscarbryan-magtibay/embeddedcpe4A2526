@@ -3,6 +3,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+
 // RC522 wiring (change if you used different pins)
 #define SS_PIN   5
 #define RST_PIN  27
@@ -62,9 +63,9 @@ void loop() {
   display.setTextSize(2);
   display.setCursor(0, 18);
   display.println(uidStr);
-  display.setTextSize(2);
+  display.setTextSize(1);
   display.setCursor(0, 50);
-  display.println("Hello Vergss");
+  display.println("Hello UB DALEVX");
   display.display();
 
   // cleanup & short delay so you can remove tag
@@ -80,6 +81,6 @@ void showTapPrompt() {
   display.clearDisplay();
   display.setTextSize(2);
   display.setCursor(10, 20);
-  display.println("TAP CARD/TAG");
+  display.println("TAP CARD");
   display.display();
 }
