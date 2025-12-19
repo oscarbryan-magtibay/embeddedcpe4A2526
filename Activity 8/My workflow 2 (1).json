@@ -1,0 +1,142 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "1631a44d-f708-4561-956b-d739481dc286",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "aff300fd-41d3-495a-9b4e-bf455e46c80e",
+      "name": "Webhook",
+      "webhookId": "1631a44d-f708-4561-956b-d739481dc286"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an ESP32 sensor data interpreter. Analyze the sensor readings and provide a conversational interpretation of the data.\n\nCurrent sensor readings:\n- Temperature: {{ $json.body.temperature }}°C\n- Humidity: {{ $json.body.humidity }}%\n\nBased on these readings, provide:\n\n1. **Status Assessment**: Is the environment normal, too hot/cold, too humid/dry?\n2. **Conversational Summary**: A friendly, natural-sounding description of the current conditions\n3. **Recommendations**: Simple suggestions if needed (like \"might want to open a window\" etc.)\n4. **Mood/Feeling**: How the environment \"feels\" (cozy, comfortable, stuffy, etc.)\n\nKeep it brief, conversational, and human-like. Return as JSON format.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "5bdea34a-b458-4bc8-a926-7413c09f776a",
+      "name": "AI Agent",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "modelName": "=models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "701b1e97-c51e-41ec-990a-874f8bd0c34b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "4ZJtQSd2VA7sUF4i",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "notes": "Create an email alert for ESP32 sensor data:\n\nTemperature: {{ $json.body.temperature }}°C\nHumidity: {{ $json.body.humidity }}%\n\nFormat this as a professional email notification using the actual values provided."
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiOutput = $input.all()[0].json.output;\n\n// Extract JSON from the output\nconst jsonString = aiOutput.replace(/```json\\n|\\n```/g, '');\nconst interpretation = JSON.parse(jsonString);\n\n// Return in the correct format for HTML node\nreturn {\n  status: interpretation.status_assessment,\n  summary: interpretation.conversational_summary,\n  recommendation: interpretation.recommendations,\n  mood: interpretation.mood_feeling\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        0
+      ],
+      "id": "0561e754-7528-4448-bebf-536c5166286e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>ESP32 Environment Dashboard</title>\n    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css\">\n    <style>\n        :root {\n            --primary: #2d5af1;\n            --primary-light: #e8edff;\n            --success: #10b981;\n            --warning: #f59e0b;\n            --danger: #ef4444;\n            --info: #3b82f6;\n            --dark: #1f2937;\n            --light: #f9fafb;\n            --gray: #6b7280;\n            --gray-light: #e5e7eb;\n            --border-radius: 16px;\n            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);\n            --transition: all 0.3s ease;\n        }\n        \n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n        \n        body {\n            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;\n            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);\n            min-height: 100vh;\n            padding: 20px;\n            color: var(--dark);\n        }\n        \n        .container {\n            max-width: 900px;\n            margin: 0 auto;\n        }\n        \n        .header {\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            margin-bottom: 30px;\n        }\n        \n        .header-title {\n            display: flex;\n            align-items: center;\n            gap: 15px;\n        }\n        \n        .header-title h1 {\n            font-size: 2.2rem;\n            background: linear-gradient(90deg, var(--primary), #6d28d9);\n            -webkit-background-clip: text;\n            background-clip: text;\n            color: transparent;\n            font-weight: 700;\n        }\n        \n        .header-icon {\n            width: 60px;\n            height: 60px;\n            background: linear-gradient(135deg, var(--primary), #6d28d9);\n            border-radius: 50%;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            color: white;\n            font-size: 28px;\n            box-shadow: var(--shadow);\n        }\n        \n        .last-updated {\n            background: white;\n            padding: 10px 20px;\n            border-radius: 50px;\n            font-size: 0.9rem;\n            color: var(--gray);\n            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);\n        }\n        \n        .dashboard {\n            display: grid;\n            grid-template-columns: 1fr;\n            gap: 25px;\n        }\n        \n        @media (min-width: 768px) {\n            .dashboard {\n                grid-template-columns: 1fr 1fr;\n            }\n            \n            .status-card {\n                grid-column: span 2;\n            }\n            \n            .summary-card {\n                grid-column: span 2;\n            }\n        }\n        \n        .card {\n            background: white;\n            border-radius: var(--border-radius);\n            padding: 25px;\n            box-shadow: var(--shadow);\n            transition: var(--transition);\n            border: 1px solid var(--gray-light);\n        }\n        \n        .card:hover {\n            transform: translateY(-5px);\n            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);\n        }\n        \n        .card-header {\n            display: flex;\n            align-items: center;\n            gap: 12px;\n            margin-bottom: 20px;\n        }\n        \n        .card-icon {\n            width: 48px;\n            height: 48px;\n            border-radius: 12px;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            font-size: 20px;\n            color: white;\n        }\n        \n        .status-icon {\n            background: linear-gradient(135deg, var(--primary), #6d28d9);\n        }\n        \n        .summary-icon {\n            background: linear-gradient(135deg, var(--success), #10a170);\n        }\n        \n        .suggestions-icon {\n            background: linear-gradient(135deg, var(--warning), #f59e0b);\n        }\n        \n        .mood-icon {\n            background: linear-gradient(135deg, #8b5cf6, #d946ef);\n        }\n        \n        .card-title {\n            font-size: 1.4rem;\n            font-weight: 600;\n            color: var(--dark);\n        }\n        \n        .status-card {\n            position: relative;\n            overflow: hidden;\n        }\n        \n        .status-indicator {\n            position: absolute;\n            top: 0;\n            right: 0;\n            padding: 10px 20px;\n            border-radius: 0 0 0 20px;\n            font-weight: 600;\n            color: white;\n            background: var(--primary);\n        }\n        \n        .status-content {\n            margin-top: 15px;\n            font-size: 1.2rem;\n            line-height: 1.5;\n            padding: 15px;\n            background: var(--primary-light);\n            border-radius: 12px;\n            border-left: 5px solid var(--primary);\n        }\n        \n        .summary-content, .suggestions-content {\n            font-size: 1.1rem;\n            line-height: 1.6;\n            color: var(--dark);\n            padding-left: 5px;\n        }\n        \n        .mood-content {\n            display: flex;\n            align-items: center;\n            gap: 15px;\n            margin-top: 15px;\n        }\n        \n        .mood-emoji {\n            font-size: 3rem;\n        }\n        \n        .mood-text {\n            font-size: 1.3rem;\n            font-style: italic;\n            color: var(--gray);\n            flex-grow: 1;\n        }\n        \n        .sensor-grid {\n            display: grid;\n            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));\n            gap: 20px;\n            margin-top: 20px;\n        }\n        \n        .sensor-item {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            padding: 20px;\n            background: var(--light);\n            border-radius: 12px;\n            text-align: center;\n            transition: var(--transition);\n        }\n        \n        .sensor-item:hover {\n            background: white;\n            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);\n        }\n        \n        .sensor-icon {\n            font-size: 2rem;\n            margin-bottom: 10px;\n            color: var(--primary);\n        }\n        \n        .sensor-value {\n            font-size: 1.8rem;\n            font-weight: 700;\n            color: var(--dark);\n            margin: 5px 0;\n        }\n        \n        .sensor-label {\n            font-size: 0.9rem;\n            color: var(--gray);\n            text-transform: uppercase;\n            letter-spacing: 1px;\n        }\n        \n        .footer {\n            text-align: center;\n            margin-top: 40px;\n            color: var(--gray);\n            font-size: 0.9rem;\n            padding: 20px;\n        }\n        \n        .status-badge {\n            display: inline-block;\n            padding: 5px 15px;\n            border-radius: 50px;\n            font-weight: 600;\n            font-size: 0.9rem;\n            margin-left: 10px;\n        }\n        \n        .status-optimal {\n            background: #d1fae5;\n            color: #065f46;\n        }\n        \n        .status-warning {\n            background: #fef3c7;\n            color: #92400e;\n        }\n        \n        .status-critical {\n            background: #fee2e2;\n            color: #991b1b;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <div class=\"header-title\">\n                <div class=\"header-icon\">\n                    <i class=\"fas fa-microchip\"></i>\n                </div>\n                <h1>ESP32 Environment Dashboard</h1>\n            </div>\n            <div class=\"last-updated\">\n                <i class=\"fas fa-sync-alt\"></i> Updated: <span id=\"update-time\">Just now</span>\n            </div>\n        </div>\n        \n        <div class=\"dashboard\">\n            <!-- Status Card -->\n            <div class=\"card status-card\">\n                <div class=\"card-header\">\n                    <div class=\"card-icon status-icon\">\n                        <i class=\"fas fa-chart-line\"></i>\n                    </div>\n                    <h2 class=\"card-title\">System Status</h2>\n                </div>\n                <div class=\"status-indicator\" id=\"status-indicator\">\n                    <span id=\"status-badge\">Optimal</span>\n                </div>\n                <div class=\"status-content\" id=\"status-content\">\n                    All systems operational. Environmental parameters within normal ranges.\n                </div>\n                \n                <!-- Sensor Grid -->\n                <div class=\"sensor-grid\">\n                    <div class=\"sensor-item\">\n                        <div class=\"sensor-icon\">\n                            <i class=\"fas fa-thermometer-half\"></i>\n                        </div>\n                        <div class=\"sensor-value\" id=\"temp-value\">23.5°C</div>\n                        <div class=\"sensor-label\">Temperature</div>\n                    </div>\n                    \n                    <div class=\"sensor-item\">\n                        <div class=\"sensor-icon\">\n                            <i class=\"fas fa-tint\"></i>\n                        </div>\n                        <div class=\"sensor-value\" id=\"humidity-value\">45%</div>\n                        <div class=\"sensor-label\">Humidity</div>\n                    </div>\n                    \n                    <div class=\"sensor-item\">\n                        <div class=\"sensor-icon\">\n                            <i class=\"fas fa-wind\"></i>\n                        </div>\n                        <div class=\"sensor-value\" id=\"air-quality-value\">Good</div>\n                        <div class=\"sensor-label\">Air Quality</div>\n                    </div>\n                    \n                    <div class=\"sensor-item\">\n                        <div class=\"sensor-icon\">\n                            <i class=\"fas fa-lightbulb\"></i>\n                        </div>\n                        <div class=\"sensor-value\" id=\"light-value\">350 lux</div>\n                        <div class=\"sensor-label\">Light Level</div>\n                    </div>\n                </div>\n            </div>\n            \n            <!-- Summary Card -->\n            <div class=\"card summary-card\">\n                <div class=\"card-header\">\n                    <div class=\"card-icon summary-icon\">\n                        <i class=\"fas fa-clipboard-check\"></i>\n                    </div>\n                    <h2 class=\"card-title\">Environment Summary</h2>\n                </div>\n                <div class=\"summary-content\" id=\"summary-content\">\n                    The current environment is stable and comfortable. Temperature and humidity are within optimal ranges for human comfort. Air quality is good with no pollutants detected above normal levels.\n                </div>\n            </div>\n            \n            <!-- Suggestions Card -->\n            <div class=\"card\">\n                <div class=\"card-header\">\n                    <div class=\"card-icon suggestions-icon\">\n                        <i class=\"fas fa-lightbulb\"></i>\n                    </div>\n                    <h2 class=\"card-title\">Recommendations</h2>\n                </div>\n                <div class=\"suggestions-content\" id=\"suggestions-content\">\n                    <ul style=\"padding-left: 20px; margin-top: 10px;\">\n                        <li style=\"margin-bottom: 10px;\">Consider increasing ventilation to maintain optimal air quality.</li>\n                        <li style=\"margin-bottom: 10px;\">Temperature is ideal - no adjustment needed.</li>\n                        <li style=\"margin-bottom: 10px;\">Monitor humidity levels as they approach the upper comfort threshold.</li>\n                    </ul>\n                </div>\n            </div>\n            \n            <!-- Mood Card -->\n            <div class=\"card\">\n                <div class=\"card-header\">\n                    <div class=\"card-icon mood-icon\">\n                        <i class=\"fas fa-smile\"></i>\n                    </div>\n                    <h2 class=\"card-title\">Environment Mood</h2>\n                </div>\n                <div class=\"mood-content\">\n                    <div class=\"mood-emoji\" id=\"mood-emoji\">😊</div>\n                    <div class=\"mood-text\" id=\"mood-text\">Comfortable and pleasant - ideal conditions for productivity.</div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"footer\">\n            <p>ESP32 Environment Monitoring System | Data updates every 30 seconds</p>\n            <p>Connection: <span id=\"connection-status\" style=\"color: var(--success); font-weight: 600;\">Connected</span></p>\n        </div>\n    </div>\n\n    <script>\n        // Sample data - in a real application, this would come from your ESP32\n        const sampleData = {\n            status: \"All systems operational\",\n            summary: \"The current environment is stable and comfortable. Temperature and humidity are within optimal ranges for human comfort.\",\n            recommendation: \"Consider increasing ventilation to maintain optimal air quality. Temperature is ideal - no adjustment needed.\",\n            mood: \"Comfortable and pleasant - ideal conditions for productivity.\",\n            temperature: 23.5,\n            humidity: 45,\n            airQuality: \"Good\",\n            lightLevel: 350\n        };\n        \n        // Update the dashboard with data\n        function updateDashboard(data) {\n            document.getElementById('status-content').textContent = data.status;\n            document.getElementById('summary-content').textContent = data.summary;\n            document.getElementById('suggestions-content').innerHTML = \n                `<ul style=\"padding-left: 20px; margin-top: 10px;\">\n                    <li style=\"margin-bottom: 10px;\">Consider increasing ventilation to maintain optimal air quality.</li>\n                    <li style=\"margin-bottom: 10px;\">Temperature is ideal - no adjustment needed.</li>\n                    <li style=\"margin-bottom: 10px;\">Monitor humidity levels as they approach the upper comfort threshold.</li>\n                </ul>`;\n            document.getElementById('mood-text').textContent = data.mood;\n            \n            // Update sensor values\n            document.getElementById('temp-value').textContent = `${data.temperature}°C`;\n            document.getElementById('humidity-value').textContent = `${data.humidity}%`;\n            document.getElementById('air-quality-value').textContent = data.airQuality;\n            document.getElementById('light-value').textContent = `${data.lightLevel} lux`;\n            \n            // Update status badge based on conditions\n            let statusBadge = document.getElementById('status-badge');\n            let indicator = document.getElementById('status-indicator');\n            \n            if (data.temperature > 25 || data.humidity > 60) {\n                statusBadge.textContent = \"Warning\";\n                statusBadge.className = \"status-badge status-warning\";\n                indicator.style.background = \"var(--warning)\";\n                document.getElementById('mood-emoji').textContent = \"😐\";\n            } else if (data.temperature > 30 || data.humidity > 80) {\n                statusBadge.textContent = \"Critical\";\n                statusBadge.className = \"status-badge status-critical\";\n                indicator.style.background = \"var(--danger)\";\n                document.getElementById('mood-emoji').textContent = \"😰\";\n            } else {\n                statusBadge.textContent = \"Optimal\";\n                statusBadge.className = \"status-badge status-optimal\";\n                indicator.style.background = \"var(--primary)\";\n                document.getElementById('mood-emoji').textContent = \"😊\";\n            }\n            \n            // Update timestamp\n            const now = new Date();\n            document.getElementById('update-time').textContent = \n                `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;\n        }\n        \n        // Simulate data updates (in a real app, this would be fetched from the ESP32)\n        function simulateDataUpdate() {\n            // Generate slight variations in data\n            const newData = {\n                ...sampleData,\n                temperature: sampleData.temperature + (Math.random() * 2 - 1),\n                humidity: sampleData.humidity + (Math.random() * 10 - 5),\n                lightLevel: sampleData.lightLevel + (Math.random() * 100 - 50)\n            };\n            \n            // Ensure values are within reasonable bounds\n            newData.temperature = Math.max(18, Math.min(30, newData.temperature));\n            newData.humidity = Math.max(20, Math.min(80, newData.humidity));\n            newData.lightLevel = Math.max(100, Math.min(1000, newData.lightLevel));\n            \n            updateDashboard(newData);\n        }\n        \n        // Initialize with sample data\n        updateDashboard(sampleData);\n        \n        // Update data every 30 seconds\n        setInterval(simulateDataUpdate, 30000);\n        \n        // Simulate connection status changes\n        setInterval(() => {\n            const connectionStatus = document.getElementById('connection-status');\n            const isConnected = Math.random() > 0.1; // 90% chance of being connected\n            \n            if (isConnected) {\n                connectionStatus.textContent = \"Connected\";\n                connectionStatus.style.color = \"var(--success)\";\n            } else {\n                connectionStatus.textContent = \"Disconnected\";\n                connectionStatus.style.color = \"var(--danger)\";\n            }\n        }, 10000);\n    </script>\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        704,
+        0
+      ],
+      "id": "5ba66f9e-659c-4dac-a461-2c0735fb59fe",
+      "name": "HTML"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1428f0b0-bd85-4bcf-b074-d81873641e10",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6ebc3a90797e7eff151a620aeff5abc1ffabdcc11f7d902a28632c72e554a7d9"
+  },
+  "id": "orioUIwjjmdKc59M",
+  "tags": []
+}
